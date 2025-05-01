@@ -24,7 +24,9 @@ b. Az Open gombon lévő nyíl segítségével válassza az Open with Browser le
 a. A lekérdezés kódját adja meg válaszként! 
 
 ```js
-
+MATCH (p:Person) 
+WHERE p.born = 1964 OR p.born = 1965 
+RETURN p.name, p.born
 ```
 
 
@@ -34,7 +36,10 @@ a. A listát rendezzük a megjelenési év szerint csökkenő sorrendbe (ORDER B
 b. Az utasítás kódját adjuk meg válaszként!  
 
 ```js
-
+MATCH (m:Movie) 
+WHERE m.title STARTS WITH 'A' 
+RETURN m.title, m.released 
+ORDER BY m.released DESC
 ```
 
 4\.  A Neo4J Sandbox Movie adatbázisából kérdezze le, hogy milyen filmeket készített (:PROCUCED) Joel Silver!
@@ -44,7 +49,12 @@ b. A lekérdezés kódját adja meg válaszként
 
    
 ```js
-
+MATCH (p:Person{name: 'Joel Silver'})-[:PRODUCED]->(m:Movie) 
+RETURN m.title
+//vagy
+MATCH (p:Person)-[:PRODUCED]->(m:Movie) 
+WHERE p.name = 'Joel Silver'
+RETURN m.title
 ```
 
 5\. A Neo4J Sandbox Movie adatbázisából kérdezze le, hogy melyik rendező hány filmet rendezett! (:DIRECTED).
@@ -53,7 +63,10 @@ a. Csak azokat a rendezőket jelenítsük meg, akik 1-nél több filmet rendezte
 b. A lekérdezés kódját adja meg válaszként!  
 
 ```js
-
+MATCH (p:Person)-[:DIRECTED]->(m:Movie) 
+WITH p.name AS nev, COUNT(m.title) AS db
+WHERE db > 1
+RETURN nev, db
 ```
 
 
@@ -62,7 +75,16 @@ b. A lekérdezés kódját adja meg válaszként!
 a. A lekérdezés kódját adjuk meg válaszként!   
 
 ```js
-
+MATCH (p:Person)-[:DIRECTED]->(m:Movie)<-[:ACTED_IN]-(p:Person) 
+RETURN p.name
+//vagy
+MATCH (p:Person)-[:ACTED_IN]->(m:Movie) 
+WHERE EXISTS ((p)-[:DIRECTED]->(m)) 
+RETURN p.name
+//vagy
+MATCH (p:Person)-[:DIRECTED]->(m:Movie)
+MATCH (p:Person)-[:ACTED_IN]->(m:Movie) 
+RETURN p.name
 ```
 
 7\. A Neo4J Sandbox Movie adatbázisából kérdezze le, hogy mely filmek hány szereplője van!
@@ -72,7 +94,16 @@ b. A listából csak az első 10 jelenjen meg!
 c. A lekérdezés kódját adja meg válaszként  
 
 ```js
-
+MATCH (p:Person)-[:ACTED_IN]->(m:Movie) 
+WITH m.title AS cim, COUNT(p.name) AS szereplok 
+RETURN cim, szereplok
+ORDER BY szereplok DESC, cim ASC
+LIMIT 10
+//vagy
+MATCH (p:Person)-[:ACTED_IN]->(m:Movie) 
+RETURN m.title, COUNT(p.name) 
+ORDER BY COUNT(p.name) DESC, m.title 
+LIMIT 10
 ```
 
 8\. A Neo4J Sandbox Movie adatbázisánál készítsen új indexet i_person_born néven!
@@ -81,7 +112,12 @@ a. Az indexelés a Person csúcsokra történjen név és születési idő szeri
 b. Az indexet létrehozó utasítást adja meg válaszként!   
 
 ```js
+CREATE INDEX i_person_born 
+FOR (p:Persoon) 
+ON (p.name, p.born)
 
+//index törlés
+DROP INDEX i_person_born
 ```
 
 9\.  A Neo4J Sandbox Movie adatbázisánál jelenítse meg a személyek nevét és születési évét!
@@ -91,7 +127,10 @@ b. Az utasítás végrehajtásával együtt jelenjen meg a végrehajtási terv i
 c. Az utasítást adja meg válaszként!  
 
 ```js
-
+PROFILE //a végrehajtási terv megjelenítése
+MATCH (p:Person) 
+WHERE p.born >= 1980 AND p.born <= 2000 
+RETURN p.name, p.born
 ```
 
 10\.  Indítsa el a Neo4J Desktop programot, majd a New gombnál válassza az Import Sample Project lehetőséget!
